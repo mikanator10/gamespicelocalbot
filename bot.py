@@ -1,161 +1,112 @@
+# GSbot by gamespice
+
 import discord
 from discord.ext import commands
 from discord.ext.commands import Bot
-import asyncio
+from datetime import datetime
 import random
-import requests
-import os
+import asyncio
 
+bot = commands.Bot(command_prefix='GS')
 
-type = 1
-client = discord.Client()
+@bot.event
 
-players = {}
-
-hendrikid = "227403635166806016"
-
-minutes = 0
-hour = 0
-
-@client.event
 async def on_ready():
-    print("Eingeloggt als BoredBot V0.1")
-    print(client.user.name)
-    print(client.user.id)
-    print("------------")
-    await client.change_presence(game=discord.Game(name="access with !help"))
+    now = datetime.now()
+    print('%s Bot: running' % now)
+    print('%s Bot: name = %s' % (now, bot.user.name))
+    print('%s Bot: id = %s\n' % (now, bot.user.id))
 
+@bot.command(pass_context=True)
+async def hello(ctx):
+    now = datetime.now()
+    await bot.say("Hello, @" + str(ctx.message.author))
+    print('%s %s: GShello' % (now, str(ctx.message.author)))
 
-@client.event
-async def on_message(message):
-    if message.content.startswith("!test"):
-        await client.send_message(message.channel, "Test erfolgreich")
+@bot.event
+async def on_member_join(member):
+    now = datetime.now()
+    channel = member.server.get_channel('469143217670193152')
+    await bot.send_message(channel, 'Welcome, ' + str(member))
+    role = discord.utils.get(member.server.roles, name='Fan')
+    await bot.add_roles(member, role)
+    print('%s Bot: Welcome: %s' % (now, str(member)))
+    
+@bot.command(pass_context=True)
+async def userinfo(ctx, user: discord.Member):
+    now = datetime.now()
+    embed = discord.Embed(title="{}'s info".format(user.name), description="User info", color=0x00ff00)
+    embed.add_field(name="Name", value=user.name, inline=True)
+    embed.add_field(name="ID", value=user.id, inline=True)
+    embed.add_field(name="Status", value=user.status, inline=True)
+    embed.add_field(name="Highest role", value=user.top_role)
+    embed.add_field(name="Joined", value=user.joined_at)
+    embed.set_thumbnail(url=user.avatar_url)
+    await bot.say(embed=embed)
+    print('%s %s: GSuserinfo %s' % (now, str(ctx.message.author), user.name))
+    
+@bot.command(pass_context=True)
+async def serverinfo(ctx):
+    now = datetime.now()
+    embed = discord.Embed(name="{}'s info".format(ctx.message.server.name), description="Here's what I could find.", color=0x00ff00)
+    embed.set_author(name="http://www.gamespice.net/")
+    embed.add_field(name="Name", value=ctx.message.server.name, inline=True)
+    embed.add_field(name="ID", value=ctx.message.server.id, inline=True)
+    embed.add_field(name="Roles", value=len(ctx.message.server.roles), inline=True)
+    embed.add_field(name="Members", value=len(ctx.message.server.members))
+    embed.set_thumbnail(url=ctx.message.server.icon_url)
+    await bot.say(embed=embed)
+    print('%s %s: GSserverinfo' % (now, str(ctx.message.author)))
 
+@bot.command(pass_context=True)
+async def website(ctx):
+    now = datetime.now()
+    await bot.say('http://www.gamespice.net/')
+    print('%s %s: GSwebsite' % (now, str(ctx.message.author)))
 
-    if message.content.startswith("!ping"):
-        await client.send_message (message.channel, "PONG!")
+@bot.command(pass_context=True)
+async def kick(ctx, user: discord.Member):
+    now = datetime.now()
+    if(ctx.message.author.id == '302400842810523649'):
+        await bot.say("{} Got kicked :boot:".format(user.name))
+        await bot.kick(user)
+        print('%s %s: GSkick %s' % (now, str(ctx.message.author), user.name))
+    else:
+        now = datetime.now()
+        await bot.say('You do not have permission to use that command')
+        print('%s %s: GSkick, does not have permission' % (now, str(ctx.message.author)))
 
-
-    if message.content.startswith("!supreme"):
-        await client.send_message (message.channel, "http://www.supremenewyork.com")
-
-
-    if message.content.startswith("!steam"):
-        await client.send_message (message.channel, "http://steamcommunity.com/id/cautus/")
-
-
-    if message.content.startswith("!owner"):
-        await client.send_message(message.channel, "Dieser Bot wurde von Hendrik erstellt. Bin stolz drauf.")
-
-
-    if message.content.startswith("!memes"):
-        await client.send_message(message.channel, "Memes an die Macht!")
-
-
-    if message.content.lower().startswith("!info"):
-        info = discord.Embed(
-            title="Hey, Ich bin der BoredBot :)",
-            color=0xe74c3c,
-            description="Hey, hier siehst Du die aktuellen Commands:\n"
-                        "!Wenn ihn Vorschläge für die Verbesserung des Bots habt, könnt ihr mich gerne anschreiben. Auch im Falle eines Buggs, stehe ich zur Verfügung\n"
-                        "DiscordID: H3ndrik#7385\n"
-                        "\n"
-                        "\n"
-                        "Beta 0.1"
-
-        )
-
-        await client.send_message(message.channel, embed=info)
-
-
-
-    if message.content.startswith("!russia"):
-        response = requests.get("https://i.ytimg.com/vi/d0z_uXA_pdI/maxresdefault.jpg", stream=True)
-        await client.send_file(message.channel, io.BytesIO(response.raw.read()), filename="Bild.png", content="For Mother Russia")
-
-
-    if message.content.lower().startswith("!help"):
-        help = discord.Embed(
-            title="**Hey, Ich bin der BoredBot** :)",
-            color=0xe74c3c,
-            description="hier kannst du alle derzeit möglichen Commands sehen: \n"
-                        "https://pastebin.com/GKcrpTun"
-
-
-
-        )
-        help.set_author(
-            name="*klick hier*",
-            url="https://www.youtube.com/watch?v=MG9e6m_4yVY"
-
-         )
-        help.add_field(
-            name="**Neuerungen bei der V0.2**",
-            value="1. Custom Command bei PN\n" 
-                  "2. Es wurde die Musik Funktion hinzugefügt\n",
-        )
-
-
-
-
-        await client.send_message(message.channel, embed=help)
-
-    if message.content.startswith('!game') and message.author.id == hendrikid:
-        game = message.content[6:]
-        await client.change_presence(game=discord.Game(name=game))
-        await client.send_message(message.channel, "Status zu " + game + " geändert")
-
-    if message.content.startswith("!hardbass"):
-        await client.send_message(message.channel,"Ich heiße Niklas, und das ist mein Hardbass!")
-
-
-
-    if message.content.startswith("!asmr"):
-        await client.send_message(message.channel, "Autonomous Sensory Meridian Response (oft als ASMR abgekürzt) bezeichnet die Erfahrung eines statisch-ähnlichen oder kribbelnden Gefühls auf der Haut, das typischerweise auf der Kopfhaut beginnt und sich am Nacken und der oberen Wirbelsäule entlang bewegt (sogenannte Tingles)")
-
-
-    if message.content.startswith("!gif"):
-        gif_tag = message.content[5:]
-        rgif = g.random(tag=str(gif_tag))
-        response = requests.get(
-            str(rgif.get("data", {}).get('image_original_url')), stream=True
-        )
-        await  client.send_file(message.channel, io.BytesIO(response.raw.read()), filename="video.gif")
+@bot.command(pass_context=True)
+async def truth(ctx):
+    now = datetime.now()
+    await bot.say(random.choice(['Absolutly!', ':thumbdown::skin-tone-1:', ':thumbsup::skin-tone-1:', 'No, what are you talking about']))
+    print('%s %s: GStruth' % (now, str(ctx.message.author)))
         
-        
-    if message.content.startswith('!uptime'):
-        await client.send_message(message.channel, "**Ich bin schon {0} Stunde/n und {1} Minuten online auf {2}. **".format(hour, minutes, message.server))
-        
-        
-        
-    if message.content.lower().startswith('!flip'): #Coinflip 50/50% chance kopf oder zahl
-        choice = random.randint(1,2)
-        if choice == 1:
-            await client.add_reaction(message, '🌑')
-        if choice == 2:
-            await client.add_reaction(message, '🌕')
-        
+@bot.command(pass_context=True)
+async def clear(ctx, message, amout=100):
+    if(ctx.message.author.id == '302400842810523649'):
+        now = datetime.now()
+        channel = ctx.message.channel
+        messages = []
+        async for message in bot.logs_from(channel, limit=int(amout+1)):
+            messages.append(message)
+        await bot.delete_messages(messages)
+        print('%s %s: GSclear' % (now, str(ctx.message.author)))
+    else:
+        now = datetime.now()
+        await bot.say('You do not have permission to use that command')
+        print('%s %s: GSclear, does not have permission' % (now, str(ctx.message.author)))
 
-async def total_uptime():
-    await client.wait_until_ready()
-    global minutes
-    minutes = 0
-    global hour
-    hour = 0
-    while not client.is_closed:
-        await asyncio.sleep(60)
-        minutes += 1
-        if minutes == 60:
-            minutes = 0
-            hour += 1
+@bot.command(pass_context=True)
+async def giverole(ctx, user: discord.Member, arg):
+    now = datetime.now()
+    if(ctx.message.author.id == '302400842810523649'):
+        role = discord.utils.get(user.server.roles, name=arg)
+        await bot.add_roles(user, role)
+        await bot.say('given %s the role %s' % (user, arg))
+        print('%s %s: GSgiverole %s %s' % (now, str(ctx.message.author), user, arg))
+    else:
+        print('%s %s: GSgiverole, does not have permission' % (now, str(ctx.message.author)))
+        await bot.say('You do not have permission to use this command.')   
 
-client.loop.create_task(total_uptime())    
-
-   
-
-
-
-
-
-
-client.run(str(os.environ.get('BOT_TOKEN')))
+bot.run('NDY5MTE5MDU3Njk0NTU2MTcw.DjDI0Q.WzyXdH_DLZqT61D3sG7ymIKUhiM')
