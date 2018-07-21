@@ -109,4 +109,6 @@ async def giverole(ctx, user: discord.Member, arg):
         print('%s %s: GSgiverole, does not have permission' % (now, str(ctx.message.author)))
         await bot.say('You do not have permission to use this command.')   
 
+bot.listen()
+        
 bot.run('NDY5MTE5MDU3Njk0NTU2MTcw.DjDI0Q.WzyXdH_DLZqT61D3sG7ymIKUhiM')
